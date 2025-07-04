@@ -1,0 +1,6 @@
+# Django
+SECRET_KEY='your-testing-secret-key'
+DEBUG=False
+ALLOWED_HOSTS='localhost,127.0.0.1'
+DATABASE_URL='sqlite:///:memory:'
+DJANGO_SETTINGS_MODULE='config.settings.testing'

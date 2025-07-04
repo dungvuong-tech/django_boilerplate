@@ -1,0 +1,6 @@
+# Django
+SECRET_KEY='your-production-secret-key'
+DEBUG=False
+ALLOWED_HOSTS='your-domain.com'
+DATABASE_URL='psql://user:password@host:port/dbname'
+DJANGO_SETTINGS_MODULE='config.settings.production'

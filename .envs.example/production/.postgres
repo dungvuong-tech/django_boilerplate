@@ -1,0 +1,3 @@
+POSTGRES_DB=prod_db
+POSTGRES_USER=prod_user
+POSTGRES_PASSWORD=prod_password
