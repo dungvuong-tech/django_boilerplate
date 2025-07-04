@@ -1,4 +1,4 @@
-# LTC Django Boilerplate
+# Django Boilerplate
 
 A comprehensive, production-ready Django boilerplate project managed by Poetry. This boilerplate is designed to be modular, well-documented, and incorporates modern best practices for structure, security, testing, CI/CD, and deployment using Docker.
 
