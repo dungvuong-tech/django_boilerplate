@@ -1,1 +1,3 @@
-# No PostgreSQL variables needed for testing with SQLite
+POSTGRES_DB=test_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
