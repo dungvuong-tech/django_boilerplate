@@ -13,88 +13,141 @@ A comprehensive, production-ready Django boilerplate project managed by Poetry. 
 *   **Code Quality:** `ruff` for linting and formatting, with pre-commit hooks.
 *   **Testing:** `pytest` with `pytest-django` and `factory-boy`.
 *   **CI/CD:** A basic CI/CD pipeline using GitHub Actions.
+*   **Logging:** JSON-formatted logging for production.
 
-## Project Structure
+## Project Setup Guide
 
-```
-your-project-name/
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── .envs/
-│   ├── .production/
-│   │   ├── .django
-│   │   └── .postgres
-│   ├── .development/
-│   │   ├── .django
-│   │   └── .postgres
-│   └── .testing/
-│       ├── .django
-│       └── .postgres
-├── .envs.example/
-│   ├── .production/
-│   │   ├── .django
-│   │   └── .postgres
-│   ├── .development/
-│   │   ├── .django
-│   │   └── .postgres
-│   └── .testing/
-│       ├── .django
-│       └── .postgres
-├── .gitignore
-├── .pre-commit-config.yaml
-├── docker-compose.yml
-├── Dockerfile
-├── manage.py
-├── poetry.lock
-├── pyproject.toml
-├── README.md
-│
-└── src/
-    ├── apps/
-    │   ├── __init__.py
-    │   └── users/
-    │       ├── __init__.py
-    │       ├── admin.py
-    │       ├── apps.py
-    │       ├── models.py
-    │       ├── serializers.py
-    │       ├── tests/
-    │       │   └── ...
-    │       └── views.py
-    │
-    └── config/
-        ├── __init__.py
-        ├── asgi.py
-        ├── settings/
-        │   ├── __init__.py
-        │   ├── base.py
-        │   ├── development.py
-        │   ├── production.py
-        │   └── testing.py
-        ��── urls.py
-        └── wsgi.py
-```
+This guide will walk you through setting up a new project from this boilerplate.
 
-## Local Development Setup
-
-1.  **Clone the repository:**
+1.  **Clone the boilerplate:**
     ```bash
-    git clone <repository-url>
-    cd ltc-django-boilerplate
+    git clone <repository-url> your-project-name
+    cd your-project-name
     ```
 
-2.  **Copy the example environment variables:**
+2.  **Initialize Poetry and install dependencies:**
+    This boilerplate uses Poetry for dependency management. To install the dependencies, run:
+    ```bash
+    poetry install
+    ```
+
+3.  **Set up pre-commit hooks:**
+    This boilerplate uses `pre-commit` to run `ruff` for linting and formatting on every commit. To install the hooks, run:
+    ```bash
+    poetry run pre-commit install
+    ```
+
+4.  **Create environment variables:**
+    Copy the example environment variables to create your own `.envs` directory:
     ```bash
     cp -r .envs.example/ .envs/
     ```
+    Review and update the variables in the `.envs` files as needed.
 
-3.  **Build and run the containers:**
+5.  **Build and run the Docker containers:**
     ```bash
     docker-compose up --build
     ```
+    This will start the Django development server and a PostgreSQL database. The application will be available at `http://localhost:8000`.
 
-The application will be available at `http://localhost:8000`.
+6.  **Run initial migrations and create a superuser:**
+    ```bash
+    docker-compose exec web python src/manage.py migrate
+    docker-compose exec web python src/manage.py createsuperuser
+    ```
+
+7.  **Create a new Django app:**
+    To create a new app, run the following command:
+    ```bash
+    docker-compose exec web python src/manage.py startapp my_app src/apps/my_app
+    ```
+    Then, add `'apps.my_app'` to the `LOCAL_APPS` list in `src/config/settings/base.py`.
+
+## Testing Guide
+
+This boilerplate uses `pytest` for testing. Here's a guide to get you started with writing tests.
+
+### Writing Your First Test
+
+1.  **Create a test file:**
+    In your app's `tests` directory, create a new file starting with `test_`. For example, `test_models.py`.
+
+2.  **Write a simple test:**
+    Here's an example of a test for a model:
+    ```python
+    import pytest
+    from .factories import YourModelFactory
+
+    @pytest.mark.django_db
+    def test_your_model_creation():
+        instance = YourModelFactory()
+        assert instance.pk is not None
+    ```
+
+### Using Factories
+
+This boilerplate uses `factory-boy` to create test data. You can define factories for your models in a `factories.py` file in your app's directory.
+
+```python
+# src/apps/your_app/factories.py
+import factory
+from .models import YourModel
+
+class YourModelFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = YourModel
+
+    # Define your model's fields here
+    name = factory.Faker("name")
+```
+
+### Running Tests
+
+To run all tests, use the following command:
+```bash
+docker-compose exec web pytest
+```
+
+To run tests for a specific app:
+```bash
+docker-compose exec web pytest src/apps/your_app/
+```
+
+## Logging Guide
+
+This boilerplate is configured to use JSON-formatted logging in production for easy parsing by log management systems.
+
+### How to Use Logging
+
+To log messages in your application, you can use Python's built-in `logging` module.
+
+1.  **Get a logger instance:**
+    In your `views.py` or any other file, get a logger instance:
+    ```python
+    import logging
+
+    logger = logging.getLogger(__name__)
+    ```
+
+2.  **Log messages:**
+    You can then use the logger to log messages at different levels:
+    ```python
+    def my_view(request):
+        logger.debug("This is a debug message.")
+        logger.info("This is an info message.")
+        logger.warning("This is a warning message.")
+        logger.error("This is an error message.")
+        logger.critical("This is a critical message.")
+        # ... your view logic ...
+    ```
+
+### Log Levels
+
+*   **DEBUG:** Detailed information, typically of interest only when diagnosing problems.
+*   **INFO:** Confirmation that things are working as expected.
+*   **WARNING:** An indication that something unexpected happened, or indicative of some problem in the near future (e.g., ‘disk space low’). The software is still working as expected.
+*   **ERROR:** Due to a more serious problem, the software has not been able to perform some function.
+*   **CRITICAL:** A serious error, indicating that the program itself may be unable to continue running.
 
 ## Environment Differences Explained
 
@@ -104,46 +157,11 @@ The application will be available at `http://localhost:8000`.
     *   **Settings:** `config.settings.development`
 *   **Testing:**
     *   **Purpose:** For running automated tests.
-    *   **Database:** In-memory SQLite for speed.
-    *   **Settings:** `config.settings.testing`
+    *   **Database:** PostgreSQL running in a Docker container.
 *   **Production:**
     *   **Purpose:** For live deployment.
     *   **Database:** PostgreSQL, with connection details provided via environment variables.
     *   **Settings:** `config.settings.production`
-
-## Adding a New Django App
-
-1.  Create a new directory for your app in `src/apps/`.
-2.  Add the app to the `LOCAL_APPS` list in `src/config/settings/base.py`.
-3.  Run `docker-compose exec web python src/manage.py makemigrations` and `docker-compose exec web python src/manage.py migrate` to create the necessary database tables.
-
-## Running Commands
-
-*   **Run tests:**
-    ```bash
-    docker-compose exec web pytest
-    ```
-
-*   **Run linter:**
-    ```bash
-    docker-compose exec web ruff check .
-    ```
-
-*   **Run formatter:**
-    ```bash
-    docker-compose exec web ruff format .
-    ```
-
-*   **Run migrations:**
-    ```bash
-    docker-compose exec web python src/manage.py makemigrations
-    docker-compose exec web python src/manage.py migrate
-    ```
-
-*   **Create a superuser:**
-    ```bash
-    docker-compose exec web python src/manage.py createsuperuser
-    ```
 
 ## Deployment
 
